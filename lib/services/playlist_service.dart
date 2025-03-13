@@ -70,7 +70,7 @@ class PlaylistService {
           channels.add(
             IPTVChannel(
               id: id++,
-              name: title ?? 'Unknown Channel ${id}',
+              name: title ?? 'Unknown Channel $d'
               url: url,
               group: group ?? 'Uncategorized',
               logo: logo,

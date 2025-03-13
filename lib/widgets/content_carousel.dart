@@ -10,12 +10,12 @@ class ContentCarousel extends StatelessWidget {
   final bool isOriginals;
 
   const ContentCarousel({
-    Key? key,
+    super..key,
     required this.title,
     required this.contentList,
     required this.onTap,
     this.isOriginals = false,
-  }) : super(key: key);
+  })
 
   @override
   Widget build(BuildContext context) {

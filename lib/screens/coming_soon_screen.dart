@@ -6,7 +6,7 @@ import 'package:my_project_name/services/api_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class ComingSoonScreen extends StatefulWidget {
-  const ComingSoonScreen({Key? key}) : super(key: key);
+  const ComingSoonScreen({super..key}
 
   @override
   State<ComingSoonScreen> createState() => _ComingSoonScreenState();
@@ -219,12 +219,12 @@ class _CategoryItem extends StatelessWidget {
   final VoidCallback onTap;
 
   const _CategoryItem({
-    Key? key,
+    super..key,
     required this.category,
     required this.channelCount,
     required this.previewChannels,
     required this.onTap,
-  }) : super(key: key);
+  })
 
   @override
   Widget build(BuildContext context) {

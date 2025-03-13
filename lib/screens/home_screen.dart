@@ -9,7 +9,7 @@ import 'package:my_project_name/screens/detail_screen.dart';
 import 'package:my_project_name/screens/playlists_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super..key}
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();

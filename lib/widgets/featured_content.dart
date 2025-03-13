@@ -9,11 +9,11 @@ class FeaturedContent extends StatelessWidget {
   final Function() onInfoPress;
 
   const FeaturedContent({
-    Key? key,
+    super..key,
     required this.featuredContent,
     required this.onPlayPress,
     required this.onInfoPress,
-  }) : super(key: key);
+  })
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +33,7 @@ class FeaturedContent extends StatelessWidget {
         ),
         Container(
           height: 500.0,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
                 Colors.black,
@@ -43,7 +43,7 @@ class FeaturedContent extends StatelessWidget {
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              stops: const [0, 0.2, 0.8, 1],
+              stops: [0, 0.2, 0.8, 1],
             ),
           ),
         ),
@@ -77,9 +77,9 @@ class _PlayButton extends StatelessWidget {
   final Function() onTap;
 
   const _PlayButton({
-    Key? key,
+    super..key,
     required this.onTap,
-  }) : super(key: key);
+  })
 
   @override
   Widget build(BuildContext context) {
@@ -118,9 +118,9 @@ class _InfoButton extends StatelessWidget {
   final Function() onTap;
 
   const _InfoButton({
-    Key? key,
+    super..key,
     required this.onTap,
-  }) : super(key: key);
+  })
 
   @override
   Widget build(BuildContext context) {

@@ -7,7 +7,7 @@ import 'package:my_project_name/services/database_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class DownloadsScreen extends StatefulWidget {
-  const DownloadsScreen({Key? key}) : super(key: key);
+  const DownloadsScreen({super..key}
 
   @override
   State<DownloadsScreen> createState() => _DownloadsScreenState();

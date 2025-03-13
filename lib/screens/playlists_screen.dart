@@ -6,7 +6,7 @@ import 'package:my_project_name/services/playlist_service.dart';
 import 'package:my_project_name/services/api_service.dart';
 
 class PlaylistsScreen extends StatefulWidget {
-  const PlaylistsScreen({Key? key}) : super(key: key);
+  const PlaylistsScreen({super..key}
 
   @override
   State<PlaylistsScreen> createState() => _PlaylistsScreenState();
