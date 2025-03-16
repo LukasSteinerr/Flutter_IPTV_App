@@ -10,12 +10,12 @@ class ContentCarousel extends StatelessWidget {
   final bool isOriginals;
 
   const ContentCarousel({
-    super..key,
+    super.key,
     required this.title,
     required this.contentList,
     required this.onTap,
     this.isOriginals = false,
-  })
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +24,7 @@ class ContentCarousel extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
+          child: Text(title, style: Theme.of(context).textTheme.headlineMedium),
         ),
         SizedBox(
           height: isOriginals ? 400 : 200,
@@ -48,25 +45,28 @@ class ContentCarousel extends StatelessWidget {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8.0),
                           child: CachedNetworkImage(
-                            imageUrl: isOriginals 
-                                ? movie.fullPosterPath 
-                                : movie.fullBackdropPath,
+                            imageUrl:
+                                isOriginals
+                                    ? movie.fullPosterPath
+                                    : movie.fullBackdropPath,
                             fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              color: AppColors.netflixDarkGrey,
-                              child: const Center(
-                                child: CircularProgressIndicator(
-                                  color: AppColors.netflixRed,
+                            placeholder:
+                                (context, url) => Container(
+                                  color: AppColors.netflixDarkGrey,
+                                  child: const Center(
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.netflixRed,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            errorWidget: (context, url, error) => Container(
-                              color: AppColors.netflixDarkGrey,
-                              child: const Icon(
-                                Icons.error,
-                                color: AppColors.netflixRed,
-                              ),
-                            ),
+                            errorWidget:
+                                (context, url, error) => Container(
+                                  color: AppColors.netflixDarkGrey,
+                                  child: const Icon(
+                                    Icons.error,
+                                    color: AppColors.netflixRed,
+                                  ),
+                                ),
                           ),
                         ),
                       ),

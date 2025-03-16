@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 import 'package:my_project_name/models/iptv_channel.dart';
 import 'package:my_project_name/models/iptv_playlist.dart';
@@ -27,34 +28,52 @@ class PlaylistService {
   static List<IPTVChannel> _parseM3u(String content) {
     final List<IPTVChannel> channels = [];
     int id = 1;
-    
+
     // Split content into lines and filter out empty lines
-    final lines = content.split('\n').where((line) => line.trim().isNotEmpty).toList();
-    
-    // Check if it's a valid M3U file
-    if (lines.isEmpty || !lines[0].trim().startsWith('#EXTM3U')) {
-      throw Exception('Invalid M3U file format');
+    final lines =
+        content.split('\n').where((line) => line.trim().isNotEmpty).toList();
+
+    // Check if it's a valid M3U file - more lenient check
+    if (lines.isEmpty) {
+      print('Empty M3U content');
+      return [];
     }
-    
+
+    // Try to find #EXTM3U anywhere in the first few lines
+    bool foundHeader = false;
+    for (int i = 0; i < math.min(5, lines.length); i++) {
+      if (lines[i].trim().startsWith('#EXTM3U')) {
+        foundHeader = true;
+        break;
+      }
+    }
+
+    if (!foundHeader) {
+      print('Warning: M3U header not found, attempting to parse anyway');
+    }
+
     String? title;
     String? group;
     String? logo;
-    
+
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
-      
+
       if (line.startsWith('#EXTINF:')) {
         // Parse channel info
-        title = _extractValue(line, 'tvg-name="', '"') ?? 
-                _extractValue(line, 'title="', '"');
-                
-        group = _extractValue(line, 'group-title="', '"') ?? 
-                _extractValue(line, 'group-name="', '"') ?? 
-                'Uncategorized';
-                
-        logo = _extractValue(line, 'tvg-logo="', '"') ?? 
-              _extractValue(line, 'logo="', '"');
-        
+        title =
+            _extractValue(line, 'tvg-name="', '"') ??
+            _extractValue(line, 'title="', '"');
+
+        group =
+            _extractValue(line, 'group-title="', '"') ??
+            _extractValue(line, 'group-name="', '"') ??
+            'Uncategorized';
+
+        logo =
+            _extractValue(line, 'tvg-logo="', '"') ??
+            _extractValue(line, 'logo="', '"');
+
         // If no name found in attributes, try to parse the name at the end of the #EXTINF line
         if (title == null) {
           final commaIndex = line.lastIndexOf(',');
@@ -62,21 +81,25 @@ class PlaylistService {
             title = line.substring(commaIndex + 1).trim();
           }
         }
-        
+
         // Check next line for URL
         if (i + 1 < lines.length && !lines[i + 1].startsWith('#')) {
           final url = lines[i + 1].trim();
-          
+
+          // Determine content type based on group name
+          final contentType = _determineContentType(group ?? 'Uncategorized');
+
           channels.add(
             IPTVChannel(
               id: id++,
-              name: title ?? 'Unknown Channel $d'
+              name: title ?? 'Unknown Channel $id',
               url: url,
               group: group ?? 'Uncategorized',
               logo: logo,
+              contentType: contentType,
             ),
           );
-          
+
           // Reset values
           title = null;
           group = null;
@@ -84,12 +107,16 @@ class PlaylistService {
         }
       }
     }
-    
+
     return channels;
   }
 
   // Helper method to extract attribute values
-  static String? _extractValue(String source, String startPattern, String endPattern) {
+  static String? _extractValue(
+    String source,
+    String startPattern,
+    String endPattern,
+  ) {
     final startIndex = source.indexOf(startPattern);
     if (startIndex != -1) {
       final valueStartIndex = startIndex + startPattern.length;
@@ -145,6 +172,9 @@ class PlaylistService {
             final streamIcon = stream['stream_icon'];
             final streamUrl = '$baseUrl/live/$username/$password/$streamId.ts';
 
+            // Determine content type based on category name
+            final contentType = _determineContentType(categoryName);
+
             channels.add(
               IPTVChannel(
                 id: id++,
@@ -152,6 +182,7 @@ class PlaylistService {
                 url: streamUrl,
                 group: categoryName,
                 logo: streamIcon,
+                contentType: contentType,
               ),
             );
           }
@@ -195,25 +226,50 @@ class PlaylistService {
     String url,
   ) async {
     try {
-      final channels = await getChannelsFromUrl(url);
-
-      if (channels.isEmpty) {
-        return {
-          'success': false,
-          'errorMessage': 'No channels found in the playlist',
-        };
-      }
-
+      // First, save the playlist to the database
       final playlist = IPTVPlaylist(
         name: name,
         url: url,
-        numChannels: channels.length,
+        numChannels: 0, // We'll update this later
         type: isXtreamUrl(url) ? PlaylistType.xtream : PlaylistType.m3u,
       );
 
       final savedPlaylist = await DatabaseService.addPlaylist(playlist);
 
-      return {'success': true, 'playlist': savedPlaylist, 'channels': channels};
+      // Then try to fetch channels
+      try {
+        final channels = await getChannelsFromUrl(url);
+
+        // Update the playlist with the correct channel count
+        if (channels.isNotEmpty) {
+          final updatedPlaylist = IPTVPlaylist(
+            id: savedPlaylist.id,
+            name: name,
+            url: url,
+            numChannels: channels.length,
+            type: savedPlaylist.type,
+          );
+
+          await DatabaseService.addPlaylist(updatedPlaylist);
+        }
+
+        return {
+          'success': true,
+          'playlist': savedPlaylist,
+          'channels': channels,
+          'message':
+              channels.isEmpty ? 'Playlist added but no channels found' : null,
+        };
+      } catch (channelError) {
+        print('Error fetching channels: $channelError');
+        return {
+          'success': true,
+          'playlist': savedPlaylist,
+          'channels': <IPTVChannel>[],
+          'message':
+              'Playlist added but there was an error loading channels: $channelError',
+        };
+      }
     } catch (e) {
       return {'success': false, 'errorMessage': 'Error adding playlist: $e'};
     }
@@ -224,5 +280,49 @@ class PlaylistService {
     IPTVPlaylist playlist,
   ) async {
     return getChannelsFromUrl(playlist.url);
+  }
+
+  // Get channels by content type
+  static Future<List<IPTVChannel>> getChannelsByContentType(
+    List<IPTVChannel> channels,
+    String contentType,
+  ) async {
+    return channels.where((channel) {
+      if (channel.contentType == contentType) {
+        return true;
+      }
+      if (channel.contentType == null &&
+          _determineContentType(channel.group) == contentType) {
+        return true;
+      }
+      return false;
+    }).toList();
+  }
+
+  // Helper to determine content type from group name
+  static String _determineContentType(String group) {
+    final groupLower = group.toLowerCase();
+
+    if (groupLower.contains('movie') ||
+        groupLower.contains('film') ||
+        groupLower.contains('cinema')) {
+      return 'movie';
+    }
+
+    if (groupLower.contains('series') ||
+        groupLower.contains('show') ||
+        groupLower.contains('drama')) {
+      return 'tv_show';
+    }
+
+    if (groupLower.contains('live') ||
+        groupLower.contains('tv') ||
+        groupLower.contains('channel') ||
+        groupLower.contains('news') ||
+        groupLower.contains('sport')) {
+      return 'live';
+    }
+
+    return 'unknown';
   }
 }

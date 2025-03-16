@@ -14,7 +14,7 @@ class Api {
       'https://via.placeholder.com/1280x720?text=No+Image';
 
   // Cache of loaded channels to avoid repeated parsing
-  static final final Map<int, List<IPTVChannel>> _channelCache = {};
+  static final Map<int, List<IPTVChannel>> _channelCache = {};
 
   static Future<void> clearCache() async {
     _channelCache.clear();
@@ -71,7 +71,6 @@ class Api {
         group.contains('show') ||
         group.contains('tv')) {
       return 'tv';
-    }
     }
     return 'live'; // Default to live
   }

@@ -4,6 +4,7 @@ class IPTVChannel {
   final String url;
   final String group;
   final String? logo;
+  final String? contentType; // Added content type field
 
   IPTVChannel({
     this.id,
@@ -11,6 +12,7 @@ class IPTVChannel {
     required this.url,
     required this.group,
     this.logo,
+    this.contentType, // Default to null if not provided
   });
 
   factory IPTVChannel.fromMap(Map<String, dynamic> map) {
@@ -20,6 +22,7 @@ class IPTVChannel {
       url: map['url'],
       group: map['group_name'],
       logo: map['logo'],
+      contentType: map['content_type'],
     );
   }
 
@@ -30,12 +33,13 @@ class IPTVChannel {
       'url': url,
       'group_name': group,
       'logo': logo,
+      'content_type': contentType,
     };
   }
 
   @override
   String toString() {
-    return 'IPTVChannel(id: $id, name: $name, url: $url, group: $group, logo: $logo)';
+    return 'IPTVChannel(id: $id, name: $name, url: $url, group: $group, logo: $logo, contentType: $contentType)';
   }
 
   static List<IPTVChannel> fromJsonList(List<dynamic> jsonList) {

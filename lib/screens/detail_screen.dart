@@ -13,7 +13,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 class DetailScreen extends StatefulWidget {
   final Movie movie;
 
-  const DetailScreen({super..key, required this.movie}
+  const DetailScreen({super.key, required this.movie});
 
   @override
   State<DetailScreen> createState() => _DetailScreenState();
@@ -291,7 +291,7 @@ class _DetailScreenState extends State<DetailScreen> {
   Widget _buildHeader() {
     return Stack(
       children: [
-        SizedBox
+        SizedBox(
           height: 250,
           width: double.infinity,
           child: CachedNetworkImage(

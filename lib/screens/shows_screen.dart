@@ -6,14 +6,14 @@ import 'package:my_project_name/services/playlist_service.dart';
 import 'package:my_project_name/widgets/content_carousel.dart';
 import 'package:my_project_name/widgets/featured_content.dart';
 
-class MoviesScreen extends StatefulWidget {
-  const MoviesScreen({Key? key}) : super(key: key);
+class ShowsScreen extends StatefulWidget {
+  const ShowsScreen({Key? key}) : super(key: key);
 
   @override
-  State<MoviesScreen> createState() => _MoviesScreenState();
+  State<ShowsScreen> createState() => _ShowsScreenState();
 }
 
-class _MoviesScreenState extends State<MoviesScreen> {
+class _ShowsScreenState extends State<ShowsScreen> {
   List<IPTVChannel> _channels = [];
   bool _isLoading = true;
   String _errorMessage = '';
@@ -21,10 +21,10 @@ class _MoviesScreenState extends State<MoviesScreen> {
   @override
   void initState() {
     super.initState();
-    _loadMovies();
+    _loadShows();
   }
 
-  Future<void> _loadMovies() async {
+  Future<void> _loadShows() async {
     try {
       setState(() {
         _isLoading = true;
@@ -42,19 +42,19 @@ class _MoviesScreenState extends State<MoviesScreen> {
         allChannels.addAll(channels);
       }
 
-      // Filter channels that are movies using contentType
-      final movieChannels = await PlaylistService.getChannelsByContentType(
+      // Filter channels that are TV shows using contentType
+      final showChannels = await PlaylistService.getChannelsByContentType(
         allChannels,
-        'movie',
+        'tv_show',
       );
 
       setState(() {
-        _channels = movieChannels;
+        _channels = showChannels;
         _isLoading = false;
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Error loading movies: $e';
+        _errorMessage = 'Error loading TV shows: $e';
         _isLoading = false;
       });
     }
@@ -72,36 +72,36 @@ class _MoviesScreenState extends State<MoviesScreen> {
 
     if (_channels.isEmpty) {
       return const Center(
-        child: Text('No movies found. Add playlists to see content.'),
+        child: Text('No TV shows found. Add playlists to see content.'),
       );
     }
 
     // Convert channels to Movie objects for the UI components
-    final movies =
+    final shows =
         _channels.map((channel) {
           return Movie(
             id: channel.id ?? 0,
             title: channel.name,
-            mediaType: 'movie',
+            mediaType: 'tv',
             posterPath: channel.logo,
             backdropPath: channel.logo,
             url: channel.url,
           );
         }).toList();
 
-    // Group movies by category
-    final Map<String, List<Movie>> moviesByCategory = {};
+    // Group shows by category
+    final Map<String, List<Movie>> showsByCategory = {};
     for (final channel in _channels) {
       final category = channel.group;
-      if (!moviesByCategory.containsKey(category)) {
-        moviesByCategory[category] = [];
+      if (!showsByCategory.containsKey(category)) {
+        showsByCategory[category] = [];
       }
 
-      moviesByCategory[category]!.add(
+      showsByCategory[category]!.add(
         Movie(
           id: channel.id ?? 0,
           title: channel.name,
-          mediaType: 'movie',
+          mediaType: 'tv',
           posterPath: channel.logo,
           backdropPath: channel.logo,
           url: channel.url,
@@ -109,23 +109,23 @@ class _MoviesScreenState extends State<MoviesScreen> {
       );
     }
 
-    // Featured movie (first movie or random)
-    final featuredMovie = movies.isNotEmpty ? movies.first : null;
+    // Featured show (first show or random)
+    final featuredShow = shows.isNotEmpty ? shows.first : null;
 
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: _loadMovies,
+        onRefresh: _loadShows,
         child: ListView(
           children: [
-            if (featuredMovie != null)
+            if (featuredShow != null)
               FeaturedContent(
-                featuredContent: featuredMovie,
+                featuredContent: featuredShow,
                 onPlayPress: () {
                   // Navigate to player or detail screen
                   Navigator.pushNamed(
                     context,
                     '/detail',
-                    arguments: featuredMovie,
+                    arguments: featuredShow,
                   );
                 },
                 onInfoPress: () {
@@ -133,13 +133,13 @@ class _MoviesScreenState extends State<MoviesScreen> {
                   Navigator.pushNamed(
                     context,
                     '/detail',
-                    arguments: featuredMovie,
+                    arguments: featuredShow,
                   );
                 },
               ),
 
             // Display each category
-            ...moviesByCategory.entries.map((entry) {
+            ...showsByCategory.entries.map((entry) {
               return ContentCarousel(
                 title: entry.key,
                 contentList: entry.value,

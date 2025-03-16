@@ -9,11 +9,11 @@ class FeaturedContent extends StatelessWidget {
   final Function() onInfoPress;
 
   const FeaturedContent({
-    super..key,
+    super.key,
     required this.featuredContent,
     required this.onPlayPress,
     required this.onInfoPress,
-  })
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +33,7 @@ class FeaturedContent extends StatelessWidget {
         ),
         Container(
           height: 500.0,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
                 Colors.black,
@@ -43,7 +43,7 @@ class FeaturedContent extends StatelessWidget {
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              stops: [0, 0.2, 0.8, 1],
+              stops: const [0, 0.2, 0.8, 1],
             ),
           ),
         ),
@@ -76,10 +76,7 @@ class FeaturedContent extends StatelessWidget {
 class _PlayButton extends StatelessWidget {
   final Function() onTap;
 
-  const _PlayButton({
-    super..key,
-    required this.onTap,
-  })
+  const _PlayButton({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -88,13 +85,8 @@ class _PlayButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.netflixWhite,
         foregroundColor: AppColors.netflixBlack,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4.0),
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 24.0,
-          vertical: 8.0,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
       ),
       child: const Row(
         mainAxisSize: MainAxisSize.min,
@@ -103,10 +95,7 @@ class _PlayButton extends StatelessWidget {
           SizedBox(width: 4.0),
           Text(
             'Play',
-            style: TextStyle(
-              fontSize: 16.0,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -117,10 +106,7 @@ class _PlayButton extends StatelessWidget {
 class _InfoButton extends StatelessWidget {
   final Function() onTap;
 
-  const _InfoButton({
-    super..key,
-    required this.onTap,
-  })
+  const _InfoButton({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -129,13 +115,8 @@ class _InfoButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.netflixDarkGrey.withOpacity(0.7),
         foregroundColor: AppColors.netflixWhite,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4.0),
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16.0,
-          vertical: 8.0,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       ),
       child: const Row(
         mainAxisSize: MainAxisSize.min,
@@ -144,10 +125,7 @@ class _InfoButton extends StatelessWidget {
           SizedBox(width: 4.0),
           Text(
             'More Info',
-            style: TextStyle(
-              fontSize: 16.0,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w600),
           ),
         ],
       ),
