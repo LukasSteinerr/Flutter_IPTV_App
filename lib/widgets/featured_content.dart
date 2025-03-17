@@ -76,7 +76,7 @@ class FeaturedContent extends StatelessWidget {
 class _PlayButton extends StatelessWidget {
   final Function() onTap;
 
-  const _PlayButton({super.key, required this.onTap});
+  const _PlayButton({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +106,7 @@ class _PlayButton extends StatelessWidget {
 class _InfoButton extends StatelessWidget {
   final Function() onTap;
 
-  const _InfoButton({super.key, required this.onTap});
+  const _InfoButton({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
