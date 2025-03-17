@@ -44,7 +44,9 @@ class MyApp extends StatelessWidget {
             );
           }
           // If route not found, return to home
-          return MaterialPageRoute(builder: (context) => const NavigationScreen());
+          return MaterialPageRoute(
+            builder: (context) => const NavigationScreen(),
+          );
         },
       ),
     );
@@ -68,12 +70,15 @@ class _StartupHandlerState extends State<StartupHandler> {
   }
 
   Future<void> _initializeApp() async {
-    final dataProvider = Provider.of<PlaylistDataProvider>(context, listen: false);
+    final dataProvider = Provider.of<PlaylistDataProvider>(
+      context,
+      listen: false,
+    );
     await dataProvider.initializeData();
-    
+
     // Add a small delay to show the splash screen even if data loads quickly
     await Future.delayed(const Duration(seconds: 2));
-    
+
     if (mounted) {
       setState(() {
         _initialized = true;
@@ -84,12 +89,12 @@ class _StartupHandlerState extends State<StartupHandler> {
   @override
   Widget build(BuildContext context) {
     final dataProvider = Provider.of<PlaylistDataProvider>(context);
-    
+
     // If we've finished loading, go to the main screen
     if (_initialized && !dataProvider.isLoading) {
       return const NavigationScreen();
     }
-    
+
     // Otherwise show the splash screen with loading state
     return SplashScreen(
       isLoading: true,

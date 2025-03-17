@@ -12,21 +12,21 @@ class LiveTVScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final dataProvider = Provider.of<PlaylistDataProvider>(context);
     final channels = dataProvider.getChannelsByType('live');
-    
+
     if (dataProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (dataProvider.errorMessage != null) {
       return Center(child: Text(dataProvider.errorMessage!));
     }
-    
+
     if (channels.isEmpty) {
       return const Center(
         child: Text('No live channels found. Add playlists to see content.'),
       );
     }
-    
+
     // Group channels by category
     final Map<String, List<Movie>> channelsByCategory = {};
     for (final channel in channels) {
@@ -45,7 +45,7 @@ class LiveTVScreen extends StatelessWidget {
         ),
       );
     }
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Live TV'),

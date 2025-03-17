@@ -13,33 +13,34 @@ class MoviesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final dataProvider = Provider.of<PlaylistDataProvider>(context);
     final channels = dataProvider.getChannelsByType('movie');
-    
+
     if (dataProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (dataProvider.errorMessage != null) {
       return Center(child: Text(dataProvider.errorMessage!));
     }
-    
+
     if (channels.isEmpty) {
       return const Center(
         child: Text('No movies found. Add playlists to see content.'),
       );
     }
-    
+
     // Convert channels to Movie objects for the UI components
-    final movies = channels.map((channel) {
-      return Movie(
-        id: channel.id ?? 0,
-        title: channel.name,
-        mediaType: 'movie',
-        posterPath: channel.logo,
-        backdropPath: channel.logo,
-        url: channel.url,
-      );
-    }).toList();
-    
+    final movies =
+        channels.map((channel) {
+          return Movie(
+            id: channel.id ?? 0,
+            title: channel.name,
+            mediaType: 'movie',
+            posterPath: channel.logo,
+            backdropPath: channel.logo,
+            url: channel.url,
+          );
+        }).toList();
+
     // Group movies by category
     final Map<String, List<Movie>> moviesByCategory = {};
     for (final channel in channels) {
@@ -58,10 +59,10 @@ class MoviesScreen extends StatelessWidget {
         ),
       );
     }
-    
+
     // Featured movie (first movie or random)
     final featuredMovie = movies.isNotEmpty ? movies.first : null;
-    
+
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {

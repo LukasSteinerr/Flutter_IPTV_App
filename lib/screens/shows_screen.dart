@@ -13,33 +13,34 @@ class ShowsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final dataProvider = Provider.of<PlaylistDataProvider>(context);
     final channels = dataProvider.getChannelsByType('tv_show');
-    
+
     if (dataProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (dataProvider.errorMessage != null) {
       return Center(child: Text(dataProvider.errorMessage!));
     }
-    
+
     if (channels.isEmpty) {
       return const Center(
         child: Text('No TV shows found. Add playlists to see content.'),
       );
     }
-    
+
     // Convert channels to Movie objects for the UI components
-    final shows = channels.map((channel) {
-      return Movie(
-        id: channel.id ?? 0,
-        title: channel.name,
-        mediaType: 'tv',
-        posterPath: channel.logo,
-        backdropPath: channel.logo,
-        url: channel.url,
-      );
-    }).toList();
-    
+    final shows =
+        channels.map((channel) {
+          return Movie(
+            id: channel.id ?? 0,
+            title: channel.name,
+            mediaType: 'tv',
+            posterPath: channel.logo,
+            backdropPath: channel.logo,
+            url: channel.url,
+          );
+        }).toList();
+
     // Group shows by category
     final Map<String, List<Movie>> showsByCategory = {};
     for (final channel in channels) {
@@ -58,10 +59,10 @@ class ShowsScreen extends StatelessWidget {
         ),
       );
     }
-    
+
     // Featured show (first show or random)
     final featuredShow = shows.isNotEmpty ? shows.first : null;
-    
+
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
