@@ -6,6 +6,7 @@ import 'package:my_project_name/models/movie.dart';
 import 'package:my_project_name/models/iptv_channel.dart';
 import 'package:my_project_name/services/api_service.dart';
 import 'package:my_project_name/services/database_service.dart';
+import 'package:my_project_name/widgets/shimmer_loading.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -59,10 +60,10 @@ class _DetailScreenState extends State<DetailScreen> {
 
       // Load similar content
       final trending = await Api.getTrending();
-      _similarContent =
-          Movie.fromJsonList(
-            trending,
-          ).where((m) => m.id != widget.movie.id).take(10).toList();
+      _similarContent = Movie.fromJsonList(trending)
+          .where((m) => m.id != widget.movie.id)
+          .take(10)
+          .toList();
 
       if (mounted) {
         setState(() {
@@ -80,6 +81,8 @@ class _DetailScreenState extends State<DetailScreen> {
   }
 
   Future<void> _playVideo() async {
+    if (!mounted) return;
+    
     if (widget.movie.url == null || widget.movie.url!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -123,6 +126,8 @@ class _DetailScreenState extends State<DetailScreen> {
         },
       );
 
+      if (!mounted) return;
+      
       setState(() {
         _isPlayingVideo = true;
         _isLoading = false;
@@ -130,6 +135,8 @@ class _DetailScreenState extends State<DetailScreen> {
     } catch (e) {
       debugPrint('Error playing video: $e');
       WakelockPlus.disable();
+
+      if (!mounted) return;
 
       setState(() {
         _isLoading = false;
@@ -160,6 +167,7 @@ class _DetailScreenState extends State<DetailScreen> {
   }
 
   Future<void> _toggleFavorite() async {
+    if (!mounted) return;
     if (widget.movie.url == null) return;
 
     try {
@@ -168,12 +176,11 @@ class _DetailScreenState extends State<DetailScreen> {
         final favorites = await DatabaseService.getFavorites();
         final favorite = favorites.firstWhere(
           (f) => f.url == widget.movie.url,
-          orElse:
-              () => IPTVChannel(
-                name: widget.movie.title,
-                url: widget.movie.url!,
-                group: 'Unknown',
-              ),
+          orElse: () => IPTVChannel(
+            name: widget.movie.title,
+            url: widget.movie.url!,
+            group: 'Unknown',
+          ),
         );
 
         if (favorite.id != null) {
@@ -184,10 +191,9 @@ class _DetailScreenState extends State<DetailScreen> {
         final channel = IPTVChannel(
           name: widget.movie.title,
           url: widget.movie.url!,
-          group:
-              widget.movie.genres?.isNotEmpty == true
-                  ? widget.movie.genres!.first
-                  : widget.movie.mediaType,
+          group: widget.movie.genres?.isNotEmpty == true
+              ? widget.movie.genres!.first
+              : widget.movie.mediaType,
           logo: widget.movie.posterPath,
         );
 
@@ -210,8 +216,9 @@ class _DetailScreenState extends State<DetailScreen> {
     return Scaffold(
       extendBodyBehindAppBar: !_isPlayingVideo,
       appBar: AppBar(
-        backgroundColor:
-            _isPlayingVideo ? AppColors.netflixBlack : Colors.transparent,
+        backgroundColor: _isPlayingVideo 
+            ? AppColors.netflixBlack 
+            : Colors.transparent,
         elevation: _isPlayingVideo ? 4 : 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.netflixWhite),
@@ -225,27 +232,30 @@ class _DetailScreenState extends State<DetailScreen> {
         ),
         actions: [IconButton(icon: const Icon(Icons.cast), onPressed: () {})],
       ),
-      body:
-          _isLoading
-              ? const Center(
-                child: CircularProgressIndicator(color: AppColors.netflixRed),
-              )
-              : _isPlayingVideo
+      body: _isLoading
+          ? const Center(
+              child: ShimmerContainer(
+                width: 50,
+                height: 50,
+                borderRadius: 25,
+              ),
+            )
+          : _isPlayingVideo
               ? _buildVideoPlayer()
               : SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(),
-                    _buildActions(),
-                    _buildOverview(),
-                    if (_movieDetails?['credits'] != null &&
-                        _movieDetails!['credits']['cast'] != null)
-                      _buildCast(),
-                    _buildSimilarContent(),
-                  ],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(),
+                      _buildActions(),
+                      _buildOverview(),
+                      if (_movieDetails?['credits'] != null &&
+                          _movieDetails!['credits']['cast'] != null)
+                        _buildCast(),
+                      _buildSimilarContent(),
+                    ],
+                  ),
                 ),
-              ),
     );
   }
 
@@ -277,8 +287,7 @@ class _DetailScreenState extends State<DetailScreen> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.stop),
-                color: AppColors.netflixRed,
+                icon: const Icon(Icons.close),
                 onPressed: _stopVideo,
               ),
             ],
@@ -291,122 +300,86 @@ class _DetailScreenState extends State<DetailScreen> {
   Widget _buildHeader() {
     return Stack(
       children: [
+        // Background image with gradient overlay
         SizedBox(
-          height: 250,
+          height: 300,
           width: double.infinity,
-          child: CachedNetworkImage(
-            imageUrl: widget.movie.fullBackdropPath,
-            fit: BoxFit.cover,
-            placeholder:
-                (context, url) => Container(
-                  color: AppColors.netflixDarkGrey,
-                  child: const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.netflixRed,
-                    ),
-                  ),
+          child: ShaderMask(
+            shaderCallback: (rect) {
+              return LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withAlpha(0),
+                  Colors.black.withAlpha(230),
+                ],
+              ).createShader(rect);
+            },
+            blendMode: BlendMode.darken,
+            child: CachedNetworkImage(
+              imageUrl: widget.movie.fullBackdropPath,
+              fit: BoxFit.cover,
+              placeholder: (context, url) => const ShimmerContainer(
+                width: double.infinity,
+                height: 300,
+                borderRadius: 0,
+              ),
+              errorWidget: (context, url, error) => Container(
+                color: AppColors.netflixDarkGrey,
+                child: const Icon(
+                  Icons.error,
+                  color: AppColors.netflixRed,
                 ),
-            errorWidget:
-                (context, url, error) => Container(
-                  color: AppColors.netflixDarkGrey,
-                  child: const Icon(Icons.error, color: AppColors.netflixRed),
-                ),
-          ),
-        ),
-        Container(
-          height: 250,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withOpacity(0.2),
-                Colors.black.withOpacity(0.9),
-              ],
+              ),
             ),
           ),
         ),
+
+        // Content overlay
         Positioned(
-          bottom: 10,
-          left: 20,
-          right: 20,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          bottom: 16,
+          left: 16,
+          right: 16,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: SizedBox(
-                  width: 100,
-                  height: 150,
-                  child: CachedNetworkImage(
-                    imageUrl: widget.movie.fullPosterPath,
-                    fit: BoxFit.cover,
-                    placeholder:
-                        (context, url) => Container(
-                          color: AppColors.netflixDarkGrey,
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              color: AppColors.netflixRed,
-                            ),
-                          ),
-                        ),
-                    errorWidget:
-                        (context, url, error) => Container(
-                          color: AppColors.netflixDarkGrey,
-                          child: const Icon(
-                            Icons.image_not_supported,
-                            color: AppColors.netflixRed,
-                          ),
-                        ),
-                  ),
-                ),
+              Text(
+                widget.movie.title,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: AppColors.netflixWhite,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  if (widget.movie.releaseDate != null)
                     Text(
-                      widget.movie.title,
+                      widget.movie.releaseDate!.substring(0, 4),
                       style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                        color: AppColors.netflixLightGrey,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        if (widget.movie.releaseDate != null)
-                          Text(
-                            widget.movie.releaseDate!.substring(0, 4),
-                            style: const TextStyle(
-                              color: AppColors.netflixLightGrey,
-                            ),
-                          ),
-                        if (widget.movie.releaseDate != null)
-                          const SizedBox(width: 12),
-                        if (widget.movie.voteAverage != null)
-                          RatingBar.builder(
-                            initialRating: (widget.movie.voteAverage ?? 0) / 2,
-                            minRating: 0,
-                            direction: Axis.horizontal,
-                            allowHalfRating: true,
-                            itemCount: 5,
-                            itemSize: 18,
-                            ignoreGestures: true,
-                            unratedColor: AppColors.netflixDarkGrey,
-                            itemBuilder:
-                                (context, _) =>
-                                    const Icon(Icons.star, color: Colors.amber),
-                            onRatingUpdate: (rating) {},
-                          ),
-                      ],
+                  if (widget.movie.releaseDate != null)
+                    const SizedBox(width: 12),
+                  if (widget.movie.voteAverage != null)
+                    RatingBar.builder(
+                      initialRating: (widget.movie.voteAverage ?? 0) / 2,
+                      minRating: 0,
+                      direction: Axis.horizontal,
+                      allowHalfRating: true,
+                      itemCount: 5,
+                      itemSize: 18,
+                      ignoreGestures: true,
+                      unratedColor: AppColors.netflixDarkGrey,
+                      itemBuilder: (context, _) =>
+                          const Icon(Icons.star, color: Colors.amber),
+                      onRatingUpdate: (rating) {},
                     ),
-                    const SizedBox(height: 8),
-                    _buildGenres(),
-                  ],
-                ),
+                ],
               ),
+              const SizedBox(height: 8),
+              _buildGenres(),
             ],
           ),
         ),
@@ -416,179 +389,162 @@ class _DetailScreenState extends State<DetailScreen> {
 
   Widget _buildGenres() {
     List<dynamic> genres = [];
-
-    // Use the genres from the movie if available
-    if (widget.movie.genres != null && widget.movie.genres!.isNotEmpty) {
-      return Wrap(
-        spacing: 8,
-        children:
-            widget.movie.genres!.map((genre) {
-              return Chip(
-                backgroundColor: AppColors.netflixDarkGrey,
-                label: Text(
-                  genre,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.netflixWhite,
-                  ),
-                ),
-              );
-            }).toList(),
-      );
-    }
-
-    // Otherwise try to get genres from details
-    if (_movieDetails != null && _movieDetails!.containsKey('genres')) {
-      genres = _movieDetails!['genres'];
+    if (_movieDetails != null) {
+      genres = _movieDetails!['genres'] ?? [];
     }
 
     return Wrap(
       spacing: 8,
-      children:
-          genres.map<Widget>((genre) {
-            return Chip(
-              backgroundColor: AppColors.netflixDarkGrey,
-              label: Text(
-                genre['name'] ?? 'Unknown',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.netflixWhite,
-                ),
-              ),
-            );
-          }).toList(),
+      children: genres
+          .map((genre) => Chip(
+                label: Text(genre['name']),
+                backgroundColor: AppColors.netflixDarkGrey,
+                labelStyle: const TextStyle(color: AppColors.netflixWhite),
+              ))
+          .toList(),
     );
   }
 
   Widget _buildActions() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildActionButton(
-            _isFavorite ? Icons.check : Icons.add,
-            'My List',
+            icon: Icons.play_arrow,
+            label: 'Play',
+            onPressed: _playVideo,
+            isPrimary: true,
+          ),
+          _buildActionButton(
+            icon: _isFavorite ? Icons.check : Icons.add,
+            label: _isFavorite ? 'Added' : 'My List',
             onPressed: _toggleFavorite,
           ),
-          _buildPlayButton(),
-          _buildActionButton(Icons.thumb_up_outlined, 'Rate'),
-          _buildActionButton(Icons.share, 'Share'),
+          _buildActionButton(
+            icon: Icons.thumb_up_outlined,
+            label: 'Rate',
+            onPressed: () {},
+          ),
+          _buildActionButton(
+            icon: Icons.share,
+            label: 'Share',
+            onPressed: () {},
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildPlayButton() {
-    return ElevatedButton(
-      onPressed: _playVideo,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.netflixWhite,
-        foregroundColor: AppColors.netflixBlack,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      ),
-      child: const Row(
-        children: [Icon(Icons.play_arrow), SizedBox(width: 4), Text('Play')],
-      ),
-    );
-  }
-
-  Widget _buildActionButton(
-    IconData icon,
-    String label, {
-    VoidCallback? onPressed,
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    bool isPrimary = false,
   }) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(icon: Icon(icon), onPressed: onPressed ?? () {}),
-        Text(label, style: const TextStyle(fontSize: 12)),
+        ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor:
+                isPrimary ? AppColors.netflixRed : AppColors.netflixDarkGrey,
+            shape: const CircleBorder(),
+            padding: const EdgeInsets.all(16),
+          ),
+          child: Icon(icon, color: AppColors.netflixWhite),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.netflixWhite,
+              ),
+        ),
       ],
     );
   }
 
   Widget _buildOverview() {
-    String overview = widget.movie.overview ?? 'No overview available';
-
-    // For IPTV channels, add more context
-    if (widget.movie.url != null && widget.movie.overview == null) {
-      overview =
-          'Stream from ${widget.movie.genres?.join(', ') ?? widget.movie.mediaType}';
+    String overview = '';
+    if (_movieDetails != null) {
+      overview = _movieDetails!['overview'] ?? 'No overview available.';
     }
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Overview',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: AppColors.netflixWhite,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 8),
-          Text(overview, style: const TextStyle(fontSize: 14)),
+          Text(
+            overview,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.netflixWhite,
+                ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildCast() {
-    List<dynamic> cast = [];
-    if (_movieDetails != null &&
-        _movieDetails!.containsKey('credits') &&
-        _movieDetails!['credits'].containsKey('cast')) {
-      cast = _movieDetails!['credits']['cast'];
-    }
-
-    if (cast.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    List<dynamic> cast = _movieDetails!['credits']['cast'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Text(
             'Cast',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: AppColors.netflixWhite,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
         ),
         SizedBox(
           height: 120,
           child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
             scrollDirection: Axis.horizontal,
-            itemCount: cast.length > 10 ? 10 : cast.length,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            itemCount: cast.length,
             itemBuilder: (context, index) {
-              final person = cast[index];
-              String imageUrl =
-                  'https://via.placeholder.com/185x278?text=No+Image';
-
-              final profilePath = person['profile_path'];
-              if (profilePath != null && profilePath.toString().isNotEmpty) {
-                if (profilePath.toString().startsWith('http')) {
-                  imageUrl = profilePath;
-                } else {
-                  imageUrl = 'https://image.tmdb.org/t/p/w185$profilePath';
-                }
-              }
-
+              final actor = cast[index];
               return Padding(
-                padding: const EdgeInsets.only(right: 16),
+                padding: const EdgeInsets.only(right: 16.0),
                 child: Column(
                   children: [
                     CircleAvatar(
                       radius: 40,
-                      backgroundImage: CachedNetworkImageProvider(imageUrl),
+                      backgroundColor: AppColors.netflixDarkGrey,
+                      child: const Icon(
+                        Icons.person,
+                        size: 40,
+                        color: AppColors.netflixWhite,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     SizedBox(
                       width: 80,
                       child: Text(
-                        person['name'] ?? '',
+                        actor['name'],
                         textAlign: TextAlign.center,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 12),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.netflixWhite,
+                            ),
                       ),
                     ),
                   ],
@@ -609,61 +565,73 @@ class _DetailScreenState extends State<DetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Text(
             'More Like This',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: AppColors.netflixWhite,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
         ),
-        GridView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            childAspectRatio: 0.7,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-          ),
-          itemCount: _similarContent.length,
-          itemBuilder: (context, index) {
-            final movie = _similarContent[index];
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => DetailScreen(movie: movie)),
-                );
-              },
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
-                  imageUrl: movie.fullPosterPath,
-                  fit: BoxFit.cover,
-                  placeholder:
-                      (context, url) => Container(
-                        color: AppColors.netflixDarkGrey,
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            color: AppColors.netflixRed,
+        SizedBox(
+          height: 200,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            itemCount: _similarContent.length,
+            itemBuilder: (context, index) {
+              final movie = _similarContent[index];
+              return GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DetailScreen(movie: movie),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 120,
+                  margin: const EdgeInsets.only(right: 16.0),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: CachedNetworkImage(
+                            imageUrl: movie.fullPosterPath,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) =>
+                                const ShimmerContainer(
+                                    width: 120, height: 180),
+                            errorWidget: (context, url, error) => Container(
+                              color: AppColors.netflixDarkGrey,
+                              child: const Icon(
+                                Icons.error,
+                                color: AppColors.netflixRed,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                  errorWidget:
-                      (context, url, error) => Container(
-                        color: AppColors.netflixDarkGrey,
-                        child: const Icon(
-                          Icons.image_not_supported,
-                          color: AppColors.netflixRed,
-                        ),
+                      const SizedBox(height: 4),
+                      Text(
+                        movie.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.netflixWhite,
+                            ),
                       ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
-        const SizedBox(height: 20),
       ],
     );
   }

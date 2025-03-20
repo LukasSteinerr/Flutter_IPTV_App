@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:my_project_name/constants/app_theme.dart';
 import 'package:my_project_name/models/movie.dart';
+import 'package:my_project_name/widgets/shimmer_loading.dart';
 
 class ContentCarousel extends StatelessWidget {
   final String title;
@@ -19,65 +19,72 @@ class ContentCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (contentList.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Text(title, style: Theme.of(context).textTheme.headlineMedium),
+          padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
         ),
         SizedBox(
-          height: isOriginals ? 400 : 200,
+          height: isOriginals ? 300 : 210,
           child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
             itemCount: contentList.length,
-            itemBuilder: (context, index) {
-              final movie = contentList[index];
+            itemBuilder: (BuildContext context, int index) {
+              final Movie content = contentList[index];
               return GestureDetector(
-                onTap: () => onTap(movie),
+                onTap: () => onTap(content),
                 child: Container(
-                  width: isOriginals ? 200 : 140,
                   margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                  width: isOriginals ? 200 : 140,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8.0),
-                          child: CachedNetworkImage(
-                            imageUrl:
-                                isOriginals
-                                    ? movie.fullPosterPath
-                                    : movie.fullBackdropPath,
-                            fit: BoxFit.cover,
-                            placeholder:
-                                (context, url) => Container(
-                                  color: AppColors.netflixDarkGrey,
-                                  child: const Center(
-                                    child: CircularProgressIndicator(
-                                      color: AppColors.netflixRed,
-                                    ),
+                        child: AspectRatio(
+                          aspectRatio: 2/3,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: CachedNetworkImage(
+                              imageUrl: content.fullPosterPath,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => ShimmerPosterImage(
+                                width: isOriginals ? 200 : 140,
+                                height: isOriginals ? 300 : 210,
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                color: Colors.grey[800],
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.error_outline,
+                                    color: Colors.white,
+                                    size: 30.0,
                                   ),
                                 ),
-                            errorWidget:
-                                (context, url, error) => Container(
-                                  color: AppColors.netflixDarkGrey,
-                                  child: const Icon(
-                                    Icons.error,
-                                    color: AppColors.netflixRed,
-                                  ),
-                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
                       if (!isOriginals)
                         Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
+                          padding: const EdgeInsets.only(top: 8.0),
                           child: Text(
-                            movie.title,
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            content.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ),
                     ],

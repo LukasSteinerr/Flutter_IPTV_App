@@ -1,7 +1,4 @@
-enum PlaylistType {
-  m3u,
-  xtream,
-}
+enum PlaylistType { m3u, xtream }
 
 class IPTVPlaylist {
   int? id;
@@ -39,6 +36,22 @@ class IPTVPlaylist {
       'numChannels': numChannels,
       'type': type.toString(),
     };
+  }
+
+  IPTVPlaylist copyWith({
+    int? id,
+    String? name,
+    String? url,
+    int? numChannels,
+    PlaylistType? type,
+  }) {
+    return IPTVPlaylist(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      url: url ?? this.url,
+      numChannels: numChannels ?? this.numChannels,
+      type: type ?? this.type,
+    );
   }
 
   @override

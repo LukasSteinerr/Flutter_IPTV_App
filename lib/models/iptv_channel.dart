@@ -15,6 +15,24 @@ class IPTVChannel {
     this.contentType, // Default to null if not provided
   });
 
+  IPTVChannel copyWith({
+    int? id,
+    String? name,
+    String? url,
+    String? group,
+    String? logo,
+    String? contentType,
+  }) {
+    return IPTVChannel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      url: url ?? this.url,
+      group: group ?? this.group,
+      logo: logo ?? this.logo,
+      contentType: contentType ?? this.contentType,
+    );
+  }
+
   factory IPTVChannel.fromMap(Map<String, dynamic> map) {
     return IPTVChannel(
       id: map['id'],

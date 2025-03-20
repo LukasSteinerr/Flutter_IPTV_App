@@ -1,8 +1,5 @@
-import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:my_project_name/models/iptv_channel.dart';
-import 'package:my_project_name/models/iptv_playlist.dart';
-import 'package:my_project_name/models/movie.dart';
 import 'package:my_project_name/services/database_service.dart';
 import 'package:my_project_name/services/playlist_service.dart';
 
